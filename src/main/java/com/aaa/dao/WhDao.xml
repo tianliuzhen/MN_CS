@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aaa.dao.WhDao">
+<!-- 查询所有仓库 -->
+<select id="getAllWareHouse" parameterType="BasePojo" resultType="java.util.Map">
+  select * from warehouse wh join officeclerk oc on wh.ocid=oc.ocid
+  <where>
+      <if test="keyWord!='' and keyWord!=null">
+          wh.whName like '%${keyWord}%' or wh.whAddress like '%${keyWord}%'
+      </if>
+    </where>
+</select>
+<!--选择负责人 查询所有员工  -->
+<select id="getAllUsers" resultType="java.util.Map">
+  select * from officeclerk
+</select>
+<!--选择负责人  模糊查询员工  -->
+<select id="getAllUserByWord" parameterType="String" resultType="java.util.Map">
+  select * from officeclerk where ocId like '%${keyWord}%' or ocRealName like '%${keyWord}%' or ocPhone like '%${keyWord}%' or ocSex like '%${keyWord}%'
+</select>
+<!--验证仓库名唯一  -->
+<select id="checkWhName" resultType="int">
+select COUNT(whName) from warehouse 
+<where>
+   whName=#{whName}
+   <if test="whId!=null">
+     and whId!=#{whId}
+   </if>
+</where>
+</select>
+<!-- 添加仓库 -->
+<insert id="addWh" parameterType="java.util.Map">
+  insert into warehouse(whName,ocId,whAddress,whPhone,whCreateDate) values(#{map.whName},#{map.ocId},#{map.whAddress},#{map.whphone},date(now()))
+</insert>
+<!-- 根据ID查询仓库 -->
+<select id="getHousrByWhId" parameterType="Integer" resultType="java.util.Map">
+  select * from warehouse wh 
+  join officeclerk oc on wh.ocId=oc.ocId
+  <where>
+     <if test="WhId!=null">
+      whId=#{WhId}
+     </if>
+  </where>
+</select>
+<!-- 更新仓库 -->
+<update id="updateWh" parameterType="java.util.Map">
+  update warehouse set whName=#{map.whName},whphone=#{map.whphone},ocId=#{map.ocId},whAddress=#{map.whAddress} where whId=#{map.whId}
+</update>
+<!-- 删除之前统计仓库里面有无商品 -->
+<select id="getSpinfoByWhId" parameterType="Integer" resultType="java.util.Map">
+  select * from repertory where whId=#{whId} and rtNumber>0
+</select>
+<!-- 删除仓库 -->
+<delete id="delWh" parameterType="Integer">
+  delete from warehouse where whId=#{id}
+</delete>
+<!-- 查询采购单信息 -->
+<select id="getAllStockInfo" parameterType="BasePojo" resultType="java.util.Map">
+  select * from stock s  join officeClerk oc on s.ocId=oc.ocId 
+    <where> 
+        s.Stauts=3
+      <if test="keyWord!='' and keyWord!=null">
+         and  s.stkId like '%${keyWord}%'   or oc.ocRealName like '%${keyWord}%' 
+      </if>
+    </where>
+</select>
+<!-- 查询采购单详细 -->
+<select id="getStockdetail"  resultType="java.util.Map">
+  select * from stockdetail sd 
+  join supplier sp on sd.supId=sp.supId
+  join stock s on sd.stkId=s.stkId 
+  join spinfo sf on sd.spId=sf.spId 
+  join warehouse wh on sd.whId=wh.whId
+  join goodsstandard gs on sf.gsId=gs.gsId
+  join goodslogo gl on sf.glId=gl.glId
+  join spinfotype spt on sf.sptId=spt.sptId
+  join officeclerk oc on oc.ocId=s.ocId
+  join goodsmeasure gm on sf.gmId=gm.gmId 
+    <where>
+        sd.sdStatus is null
+       <if test="stkId!=null">
+         and sd.stkId=#{stkId}
+       </if>
+       <if test="keyWord!='' and keyWord!=null">
+         and  sf.spName like '%${keyWord}%' or sp.supName like '%${keyWord}%'
+      </if>
+     </where>
+</select>
+<!-- 查询入库单 -->
+<select id="getInHouse" parameterType="Object" resultType="java.util.Map">
+ select * from inwarehouse where stkId=#{stkId} and whId=#{whId}
+</select>
+<!--  查询入库明细   判断是否是同一批次商品-->
+<select id="getInhouseInfo" resultType="java.util.Map">
+select * from inwarehouseutil 
+<where>
+spId=#{spId} and inId=#{InId}
+  <if test="rtbegDate!='无'.toString()">
+  and rtbegDate=#{rtbegDate} 
+  </if>
+</where>
+</select>
+<!--  查询库存   判断是否是同一批次商品-->
+<select id="getRepertoryo" resultType="java.util.Map">
+select * from repertory where spId=#{spId} and rtbegDate=#{rtbegDate}
+</select>
+<!-- 入库单修改数量 -->
+<update id="updateInHouseInfo">
+update inwarehouseutil set inuNum=inuNum+#{srsl},inuAllMonery=inuNum*inuPrice where inUtilId=#{inUtilId}
+</update>
+<!-- 库存信息修改数量 -->
+<update id="updaterepertory">
+update repertory set rtNumber=rtNumber+#{srsl} where rtId=#{rtId}
+</update>
+<!-- 修改商品总库存 -->
+<update id="updateSpinfoTwo">
+ update spinfo set spAllNum=spAllNum+#{srsl} where spId=#{spId}
+</update>
+<!--修改采购单数量  -->
+<update id="updateStockdetail">
+update stockdetail set spNumber=spNumber-#{srsl} where sdId=#{sdId}
+</update>
+<!-- 修改采购单明细状态 -->
+<update id="updateStockdetailStatus">
+update stockdetail set sdStatus=1 where sdId=#{sdId}
+</update>
+<!--  生成入库单返回主键 -->
+<insert id="createInHouseWarant" parameterType="java.util.Map">
+   <selectKey keyProperty="InId" resultType="int" order="AFTER">
+            SELECT LAST_INSERT_ID()
+   </selectKey>
+   insert into inwarehouse(inDate,whid,ocId,stkId) values(now(),#{whId},#{ocId},#{stkId})
+</insert>
+<!-- 生成入库详细记录  -->
+<insert id="createInHouseWarantInfo" parameterType="java.util.Map">
+   insert into inwarehouseutil(inId,spid,inuPrice,inuNum,inuAllMonery,rtbegDate,rtPeriod,rtEndDate)
+   values(#{InId},#{spId},#{spBuyPrice},#{srsl},#{spBuyPrice}*#{srsl},#{rtbegDate},#{rtPeriod},#{rtEndDate})
+</insert>
+<!-- 生成库存信息记录 -->
+<insert id="createPertoryo" parameterType="java.util.Map">
+   insert into repertory(spId,rtNumber,rtPrice,whId,rtbegDate,rtPeriod,rtEndDate,SpBarCode,rtStatus) 
+   values(#{spId},#{srsl},#{spBuyPrice},#{whId},#{rtbegDate},#{rtPeriod},#{rtEndDate},#{SpBarCode},'未盘点')
+</insert>
+<!-- 把商品总库存更新 -->
+<update id="updateSpinfo" parameterType="java.util.Map">
+   update spinfo set spAllNum=spAllNum+#{srsl} where spId=#{spId}
+</update>
+<!-- 把采购单状态改为已审核 -->
+<update id="updateStockStatus" parameterType="java.util.Map">
+   update stock set stauts=4 where stkId=#{stkId}
+</update>
+<!-- 查询入库单  -->
+<select id="getAllInHouse" parameterType="BasePojo" resultType="java.util.Map">
+     select * from inwarehouse ih 
+     join officeClerk oc on ih.ocId=oc.ocId 
+     join wareHouse wh on wh.whId=ih.whId
+         <where> 
+      <if test="dateOne!='' and dateOne!=null and dateTwo!='' and dateTwo!=null">
+         STR_TO_DATE(ih.inDate,'%Y-%m-%d') &gt; STR_TO_DATE(#{dateOne},'%Y-%m-%d') and  STR_TO_DATE(ih.inDate,'%Y-%m-%d') &lt;  STR_TO_DATE(#{dateTwo},'%Y-%m-%d')
+      </if>
+      <if test="keyWord!='' and keyWord!=null">
+         and  ih.InId like '%${keyWord}%'  or oc.ocRealName like '%${keyWord}%' or wh.whName  like '%${keyWord}%'
+      </if>
+    </where>
+</select>
+<!-- 查询入库单详细 -->
+<select id="getAllInHouseInfo" resultType="java.util.Map">
+     select * from inwarehouseutil iu
+     join spinfo sf on iu.spid=sf.spId 
+     join goodsstandard gs on sf.gsId=gs.gsId
+     join goodslogo gl on sf.glId=gl.glId
+     join spinfotype spt on sf.sptId=spt.sptId
+     join goodsmeasure gm on sf.gmId=gm.gmId
+     <where>
+       <if test="InId!=null">
+          iu.inId=#{InId}
+       </if>
+       <if test="keyWord!='' and keyWord!=null">
+         and  sf.spName like '%${keyWord}%'
+      </if>
+     </where>
+</select>
+<!-- 查询所有商品 -->
+<select id="getAllSpInfo" parameterType="String" resultType="java.util.Map">
+select * from spinfo sf 
+   join goodsstandard gs on sf.gsId=gs.gsId
+   join goodslogo gl on sf.glId=gl.glId
+   join spinfotype spt on sf.sptId=spt.sptId
+   join goodsmeasure gm on sf.gmId=gm.gmId
+   left join warehouse wh on sf.whId=wh.whId
+   left join officeclerk oc on oc.ocId=wh.ocId
+   <where>
+        <if test="danger!=null and danger!=''">
+           sf.spAllNum &lt;50
+        </if>   
+        <if test="keyWord!='' and keyWord!=null">
+          sf.spName like '%${keyWord}%' or sf.spBarCode like '%${keyWord}%'
+        </if>
+   </where>
+</select>
+<!-- 查询商品明细 -->
+<select id="getAllRepertory" resultType="java.util.Map">
+   select * from repertory rt 
+   join spinfo sf on sf.spId=rt.spId 
+   join warehouse wh on rt.whId=wh.whId
+   join goodsmeasure gm on sf.gmId=gm.gmId
+        <where>
+       <if test="spId!=null">
+          rt.spId=#{spId} and rt.rtbegDate!='无'
+       </if>
+       <if test="keyWord!='' and keyWord!=null">
+           and  sf.spName like '%${keyWord}%'
+      </if>
+     </where>
+</select>
+<!-- 查询仓库 -->
+<select id="getWh" resultType="java.util.Map">
+ select * from warehouse
+</select>
+<!-- 查询出库单  -->
+<select id="getAllBuGoods" parameterType="BasePojo" resultType="java.util.Map">
+ select * from bugoods bg
+     join wareHouse wh on wh.whId=bg.rtId
+     join spinfo sf on sf.spId=bg.spId 
+     join goodsstandard gs on sf.gsId=gs.gsId
+     join goodslogo gl on sf.glId=gl.glId
+     join spinfotype spt on sf.sptId=spt.sptId
+     join goodsmeasure gm on sf.gmId=gm.gmId
+         <where> 
+         bg.bgStatus='已审核'
+      <if test="dateOne!='' and dateOne!=null and dateTwo!='' and dateTwo!=null">
+        and STR_TO_DATE(bg.bgDate,'%Y-%m-%d') &gt; STR_TO_DATE(#{dateOne},'%Y-%m-%d') and  STR_TO_DATE(bg.bgDate,'%Y-%m-%d') &lt;  STR_TO_DATE(#{dateTwo},'%Y-%m-%d')
+      </if>
+      <if test="keyWord!='' and keyWord!=null">
+         and  bg.bgid like '%${keyWord}%'  or bg.ocid like '%${keyWord}%' or wh.whName  like '%${keyWord}%' or sf.spName like '%${keyWord}%'
+      </if>
+    </where>
+</select>
+</mapper>

@@ -1,0 +1,22 @@
+#box{
+	height:650px;
+}
+/*ËÑË÷¿ò  */
+.pull-right{
+  position:relative;
+  height:50px;
+  left:-1140px;
+}
+ .pull-right .form-control{
+	height:40px;
+	width:500px;
+}
+.pull-left{
+position:absolute;
+left:1000px;
+font-size:16px;
+}
+/* #B4CDCD */
+table th{
+background-color:#EEEEE0;
+}

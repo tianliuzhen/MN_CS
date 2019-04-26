@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+			<!-- 在spring中使用mapper掃描器自定掃描mapper -->
+			<typeAliases>
+			  <package name="com.aaa.entity"/>
+			</typeAliases>
+				<!-- 配置插件 -->
+			<plugins>
+			<plugin interceptor="com.github.pagehelper.PageHelper">
+			    <property name="dialect" value="mysql"/>
+			</plugin>
+  </plugins>
+			
+</configuration>

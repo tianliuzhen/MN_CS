@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aaa.dao.lksDaoMapper">
+	<select id="getvip" resultType="map">
+	select * from  membership  where mpbalmonery is not null
+	</select>
+	<select id="getspinfolks"  resultType="map" parameterType="String">
+	SELECT DISTINCT *,r.SpBarCode spbc from spInfo s 
+    JOIN spinfoType st on s.sptId=st.sptId 
+    join warehouse w on s.whId=w.whId
+    join repertory r on r.spId=s.spId
+	where r.SpBarCode=#{SpBarCode}
+	</select>
+	<select id="getviplks" resultType="map" parameterType="int">
+	select * from membership where mpId=#{mpId}
+	</select>
+	<insert id="addlks" parameterType="map">
+	 insert into membership(mpName,mpMonery,mpPassword,mpType,mpBeiDate,mpStatus,mpBalMOnery) values(#{map.mpName},#{map.mpMonery},#{map.mpPassword},#{map.mpType},NOW(),#{map.mpStatus},#{map.mpBalMOnery})
+	</insert>
+	<update id="upviplks" parameterType="map">
+		update membership set mpName=#{map.mpName},mpStatus=#{map.mpStatus},mpType=#{map.mpType},mpBalMOnery=#{map.mpBalMOnery} where mpId=#{map.mpId}
+	</update>
+	<!-- 添加商品信息 -->
+	<select id="getvipphonelks" resultType="map" parameterType="String">
+	select * from membership where mpBalMOnery=#{mpBalMOnery}
+	</select>
+	<insert id="addSpinfoOrderlks" parameterType="map">
+	 INSERT into 
+spinfoOrder(ssNumber,ocId,ssTotalPrice,mpId,ssDisMonery,ssRealMonery,ssChange,ssPayType,sspDate)
+ VALUES('0',#{map.ocId},#{map.ssTotalPrice},#{map.mpId},#{map.ssDisMonery},#{map.ssRealMonery},#{map.ssChange},'现金',NOW())
+	</insert>
+	<select id="querySpinfoOrderlks" resultType="int">
+	select max(soid) from spinfoorder
+	</select>
+	 <insert id="addSpinfoSpendlks" parameterType="map">
+	 INSERT into spinfospend(soid,ssDate,ssBarCode,ssSaleNum,spId,whId,ssSalePrice,ssTotal) 
+	 VALUES(#{soid},NOW(),#{ssBarCode},#{ssSaleNum},#{spId},#{whId},#{ssSalePrice},#{ssTotal})
+	</insert>
+	<update id="uprepertorylks" parameterType="map">
+	update repertory  set  rtNumber=(rtNumber-#{trNumber}) where SpBarCode=#{SpBarCode}
+	</update> 
+	<update id="upspInfolks" parameterType="map">
+	UPDATE spinfo SET spDnNum=(spDnNum-#{spAllNum}) WHERE spId=#{spId} 
+	</update> 
+	<update id="upgoodsshelfrecordutillks" parameterType="map">
+	 Update goodsshelfrecordutil  set  guNum=(guNum-#{spAllNum})  where spId =#{spId}
+	</update>
+	<update id="upmembershiplks" parameterType="map">
+	UPDATE membership set mpMonery=(#{map.ssTotalPrice}+mpMonery) where mpId=#{map.mpId}
+	</update> 
+	<select id="querySpinfoSpendlks"  resultType="map">
+	 select * from spinfospend where ssDate>=date(now());
+	</select>
+	<select id="querytuihuolks" resultType="map">
+	select * from 
+spinfoorder sp join spinfospend s on sp.soid=s.soid 
+join spinfo spf on s.spId=spf.spId
+join spinfotype spt on spt.sptid=spf.sptid
+where sp.soid=#{soid}
+	</select>
+	<select id="querytuihuomigxilks" resultType="map">
+	 select * from 
+spinfoorder sp join spinfospend s on sp.soid=s.soid 
+join spinfo spf on s.spId=spf.spId
+join spinfotype spt on spt.sptid=spf.sptid
+where s.ssBarCode=#{ssBarCode}  and sp.soid=#{soid}
+	</select>
+	<insert id="addbackOrderGoodslks" parameterType="map">
+	 insert into backordergoods (sptId,soid,BgPrice,BgNum,mpId,Bg1,Ocid) 
+	 VALUES(#{map.sptId},#{map.soid},#{map.BgPrice},#{map.BgNum},#{map.mpId},#{map.Bg1},#{map.Ocid})
+	</insert>
+	<select id="querybackorderlks"  resultType="map" >
+	 select * from backordergoods where soid=#{soid} and sptId=#{sptId}
+	</select>
+	<select id="queryduizhanglks" resultType="map">
+	select sum(ssTotalPrice) ssTotal,ssPayType,sspDate from spinfoorder
+	WHERE TO_DAYS( NOW( ) ) - TO_DAYS(sspDate) &lt; 1  GROUP BY ssPayType
+	</select>
+	<insert id="addduizhanglks" parameterType="map">
+	 insert into duizhang(dtype,dyings,dshis,dzt,ddata,dstauts) values(#{dtype},#{dyings},#{dshis},#{dzt},NOW(),'未查看')
+	</insert>
+	<select id="queryduizhangshlks" resultType="map">
+	select * from duizhang where dstauts='未查看'
+	</select>
+	<update id="upduizhanglks" parameterType="map">
+	 UPDATE duizhang SET dstauts='已查看' WHERE did=#{map.did}
+	</update>
+	<insert id="addAlipaylks" parameterType="map">
+	 INSERT into 
+spinfoOrder(ssNumber,ocId,ssTotalPrice,mpId,ssDisMonery,ssRealMonery,ssChange,ssPayType,sspDate)
+ VALUES('0',#{map.ocId},#{map.ssTotalPrice},#{map.mpId},#{map.ssDisMonery},#{map.ssTotalPrice},#{map.ssChange},'支付宝',NOW())
+	</insert>
+</mapper>

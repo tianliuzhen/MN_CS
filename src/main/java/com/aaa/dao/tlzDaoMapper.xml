@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aaa.dao.tlzDaoMapper">
+	<select id="getAllMapGoodsDept" resultType="map" parameterType="String">
+	SELECT
+	*, COUNT(so.spId) AS allSpId
+FROM
+	goodsDept gd
+LEFT JOIN spinfo so ON gd.gdId = so.gdId  and so.spStatu='已上架' 
+GROUP BY
+	gd.gdName
+	 
+ HAVING gd.gdName like "%"#{gdnameOne}"%"    ORDER BY 	gd.gdId 
+	</select>
+	
+	 <select id="getOrderNeedToShelf" resultType="map">
+	
+	SELECT
+	*,COUNT(so.spId) as nospid
+FROM
+	spinfo so
+JOIN displayparse_copy dp ON so.dpId = dp.dpId
+JOIN displaynum dm ON dp.dpId = dm.dpId
+RIGHT JOIN goodsdept gd ON gd.gdId = so.gdId
+AND so.spDnNum  &lt;     dm.dnMaxNum
+AND spStatu = "已上架"
+GROUP BY gd.gdName ORDER BY gd.gdId
+	
+	</select> 
+	
+	<select id="getAllGoodSShelf" resultType="map" parameterType="String">
+	 select *from  spinfo  so <!-- join  repertory ry on so.spId=ry.spId -->
+ <!-- join  warehouse  we on  we.whId=so.whId --> 
+join  goodsdept gd on gd.gdId=so.gdId
+join  displayParse_copy de on de.dpId=so.dpId
+join  accessno ao on ao.anId=so.anId
+join bayno bo on bo.bnId=so.bnId
+join displaynum dm on dm.dpId=de.dpId  where  so.spStatu="已上架"  
+  <if test="gdNames !=null and gdNames != '' ">
+ and
+ gd.gdName 
+  like    concat("%",#{gdNames},"%")
+  or   so.spName   like  concat("%",#{gdNames},"%") 
+  </if>
+  
+  
+  
+  ORDER BY so.spDnNum 
+  <!-- "%"#{gdnames}"%" -->
+	</select>
+	<select id="getAllSaleUtilByOneOnGoodSDept" parameterType="Integer" resultType="map">
+	select   sd.*,sp.spName  from  spinfospend sd 
+join spinfoorder sr on sd.soid=sr.soid 
+join spinfo sp on sp.spId=sd.spId
+<!-- join repertory ry on ry.SpBarCode=sd.ssbarCode -->
+where   LEFT(sd.ssDate,10)=curdate()   and  sp.spId =#{spid} 
+       <!--   SUBSTRING(sd.ssDate,1,11) -->
+	</select>
+	
+	<!-- 申请上架 -->
+	<select id="getNoShelfGoods" resultType="map" parameterType="String">  <!-- join  repertory ry on so.spId=ry.spId -->
+	
+	  select *from  spinfo  so 
+join  spinfotype se on se.sptId=so.sptId
+<!-- join  warehouse  we on  we.whId=so.whId -->
+join  goodsdept gd on gd.gdId=so.gdId
+join  displayParse_copy de on de.dpId=so.dpId
+join  accessno ao on ao.anId=so.anId
+join bayno bo on bo.bnId=so.bnId
+join displaynum dm on dm.dpId=de.dpId  where  so.spStatu=#{spStatu}
+	</select>
+	
+	<select id="getNoShelfGoods3" resultType="map" parameterType="String" >
+	 select *from  spinfo  so 
+   join  spinfotype se on se.sptId=so.sptId
+   where  so.spStatu=#{spStatu}  and so.spAllNum>0
+	</select>
+	<select id="getNoShelfGoods2" resultType="map" >  <!-- join  repertory ry on so.spId=ry.spId -->
+	
+	  select *from  spinfo  so 
+join  spinfotype se on se.sptId=so.sptId
+<!-- join  warehouse  we on  we.whId=so.whId -->
+join  goodsdept gd on gd.gdId=so.gdId
+join  displayParse_copy de on de.dpId=so.dpId
+join  accessno ao on ao.anId=so.anId
+join bayno bo on bo.bnId=so.bnId
+join displaynum dm on dm.dpId=de.dpId  where  so.spStatu=#{spStatuss}  and  so.spucId=#{spucIdss}
+	</select>
+	
+	<select id="getGoodsDeptOne" resultType="map"> select * from  goodsDept </select>
+	<select id="getDisplayParseOne" resultType="map"> select * from  displayParse_copy  </select>
+	<select id="getAccessNoOne" resultType="map">select * from  accessNo </select>
+	<select id="getBayNoOne" resultType="map"> select * from  BayNo </select>
+	
+	<update id="updateApplyGoodsShelf" parameterType="map">
+	update spinfo set gdId=#{gdId},dpId=#{dpId},anId=#{anId},bnId=#{bnId},spStatu="上架（待审核）",spucId=#{spucId} where spId=#{spId}
+	</update>
+	<update id="updateApplyGoodsShelfCheck" > <!-- ,spDnNum=#{vvvspdnNum} -->
+	update spinfo set spStatu="已上架" where spId=#{vvvspid}
+	</update>
+		<update id="updateApplyGoodsShelf2" parameterType="map">
+	update spinfo set spStatu="下架（待审核）",spucId=#{spucId} where spId=#{spId}
+	</update>
+	<select id="getSpifoNum" resultType="map">
+	
+	 select *from  spinfo  where spId=#{spId}
+	</select>
+	<update id="updateApplyGoodsShelfCheckLast2" parameterType="map">
+    update spinfo set spStatu="未上架",spAllNum=#{spAllNum},spDnNum=0 where spId=#{spId}
+	
+	</update>
+	
+	
+	<select id="getAllMapGoodsDifferentUtil" parameterType="int" resultType="map">
+	
+	select * from  repertory ry JOIN warehouse ON  ry.whId = warehouse.whId 
+	where   spid=#{spId} and rtNumber &gt;   0 ORDER BY rtbegDate 
+	</select>
+	
+	<update id="updateBuGoods" parameterType="map">
+	update spinfo s set s.spDnNum=#{spDnNum},s.spAllNum=#{spAllNum} where  s.spId= #{spId}
+	</update>
+	
+	<update id="updateBupertory" parameterType="map">
+	update repertory r set r.rtNumber=#{rtNumber}   where r.rtId=#{rtId}
+	</update>
+	
+	<update id="updateBupertory2" parameterType="map">
+	update repertory r set r.rtNumber=r.rtNumber+#{rtNumber}   where r.rtId=#{rtId}
+	</update>
+	
+	<insert id="insertBuGoods" parameterType="map">
+	
+	insert into bugoods VALUES(null,#{ocId},#{bgDate},#{bgNum},#{spId},#{rtId},"已审核",#{bgcNoId})
+	</insert>
+	<select id="getAllMapBuGoods" parameterType="int" resultType="map">
+	   SELECT
+	*
+FROM
+	repertory ry
+JOIN bugoods bs ON ry.rtId = bs.rtId
+join warehouse we on we.whId=ry.whId
+WHERE
+	bs.spId = #{spid} ORDER BY bs.bgDate desc LIMIT 5
+	</select>
+	    
+	    <select id="getClearGoods" parameterType="int" resultType="map">
+	    
+	    select sp.spName,gl.guNum,rt.rtbegDate,rt.rtPeriod,rt.rtEndDate,rt.SpBarCode,rt.rtId,sp.spId,rt.whId,sp.spSalePrice,sp.spBuyPrice, gl.guTotalNum from  goodsshelfrecordutil gl 
+ join  repertory rt on gl.rtId=rt.rtId 
+join warehouse  we on we.whId=rt.whId
+join spinfo sp on sp.spId=gl.spId   where sp.spId=#{spId}   and  gl.guNum>0
+	    </select>
+	    
+	     <select id="qureyGoodsShelfRecordUtil" parameterType="int" resultType="map">
+	    select *from goodsshelfrecordutil where rtId=#{rtid}
+	    </select>
+	    
+	      <select id="qureyGoodsShelfRecordUtil3"  resultType="map">
+	    select *  from goodsshelfrecordutil where spid=#{spidsss}
+	    </select>
+	    
+	      <select id="qureyGoodsShelfRecordUtil3Byspid" parameterType="int" resultType="map">
+	   select * from repertory ry join  warehouse we on ry.whId=we.whId  where  spId=#{spId};
+	    </select>
+	    
+	     <select id="qureyGoodsShelfRecordUtil2"  resultType="map">
+	    select *from goodsshelfrecordutil where rtId=#{rtId} and spId=#{spId};
+	    </select>
+	    
+	    <insert id="insertGoodsShelfRecordUtil" parameterType="map">
+	    insert into goodsshelfrecordutil  VALUES(null,#{spId},#{rtId},#{guNum},#{bgid},#{guTotalNum},#{guToday})
+	    </insert>
+	   
+	   <update id="UpdateGoodsShelfRecordUtil" parameterType="map">
+	   update  goodsshelfrecordutil gl set gl.guNum=#{guNum}
+	   <if test="guTotalNum !=null and guTotalNum !='' ">
+	   ,gl.guTotalNum=#{guTotalNum}
+	   </if>
+	   <if test="guToday !=null and guToday !='' ">
+	   ,gl.guToday=#{guToday}  
+	   </if>
+	   where gl.rtId=#{rtId} 
+	   </update>
+	   <insert id="insertbuGoodsCheck" parameterType="map">
+	   
+	   insert into buGoodsCheck VALUES(null,#{ocId},#{bgcDate},#{bgcNum},#{bgcNoId},#{bgcStatus},#{gdName})
+	   </insert>
+	   <select id="selecetbuGoodsCheck" parameterType="int" resultType="map">
+	   
+	SELECT
+	*
+FROM
+	bugoodscheck bu
+JOIN bugoods bs ON bs.bgcNoId = bu.bgcNoId where bu.bgcStatus='补货待审核' and bs.spId=#{spid}
+	   </select> 
+	   
+	   <select id="getAllNocheckbuGoodsCheck" resultType="map" parameterType="String">
+	   
+	   select *from bugoodscheck where bgcStatus=#{status}
+	   
+	   </select>
+	  <update id="yescheckbuGoodsCheck" parameterType="String">
+	  update  bugoodscheck set bgcStatus='补货已审核' where bgcNoId=#{bgcNoId}
+	  </update>
+	   
+	   <select id="getUtilNocheckbuGoodsCheck" resultType="map" parameterType="String">
+	   
+	   SELECT
+	 *
+FROM
+	bugoodscheck bk
+join  bugoods bs on bk.bgcNoId=bs.bgcNoId
+join spinfo sp on sp.spId=bs.spId
+join spinfotype se on se.sptId=sp.sptId
+join repertory rt on rt.rtId=bs.rtId
+join  warehouse we on we.whId=rt.whId
+AND bk.bgcStatus = '补货待审核'   where bk.bgcNoId=#{bgcNoId}
+
+	   </select>
+	   
+	   <select id="getRepertoryNUmint" resultType="int" parameterType="int">
+	   select  rtNumber from repertory  where rtId=#{rtId}
+	   </select>
+	   <insert id="insertintoStockSetPoint" parameterType="map">
+	   
+	    insert into StockSetPoint(sspDate,whId,spId,sspNum,sspDamageNum,sspLackNum,sspLackMonery,ocId) values (#{sspDate},#{whId},#{spId},#{sspNum},#{sspDamageNum},#{sspLackNum},#{sspLackMonery},#{ocId})
+	   
+	   </insert>
+	   
+	   <select id="slectRtnum" parameterType="int" resultType="String">
+	   
+	   select   SUM(sd.ssSaleNum)  as  sdssSaleNum  from  spinfospend sd 
+join spinfoorder sr on sd.soid=sr.soid 
+join spinfo sp on sp.spId=sd.spId
+join repertory ry on ry.SpBarCode=sd.ssbarCode
+where   LEFT(sd.ssDate,10)=curdate()   and  ry.rtId=#{rtId}
+	   
+	   </select>
+	   
+	   <insert id="insertUpanddownCheck" parameterType="map">
+	   
+	   insert into UpanddownCheck values(null,#{ocId},#{ucDate},#{ucNum},#{spucId},#{ucStatus},#{gdName},#{ucReason})
+	   </insert>
+	   <select id="getListMapUpanddownCheck" resultType="map">
+	   
+	   select *from UpanddownCheck uk  where  uk.ucStatus='上架待审核'
+	   
+	   </select>
+	     <select id="getListMapUpanddownCheck2" resultType="map">
+	   
+	   select *from UpanddownCheck uk  where  uk.ucStatus=#{status}
+	   
+	   </select>
+	   <update id="UpdateUpanddownCheck" parameterType="string">
+	   
+	   update upanddowncheck  uk set uk.ucStatus='上架已审核' where spucId=#{spucId}
+	   </update>
+	    <update id="UpdateUpanddownCheck2" parameterType="string">
+	   
+	   update upanddowncheck  uk set uk.ucStatus='下架已审核' where spucId=#{spucId}
+	   </update>
+	    <update id="UpdateUpanddownCheck2xx" parameterType="string">
+	   
+	   update upanddowncheck  uk set uk.ucStatus='下架待处理' where spucId=#{spucId}
+	   </update>
+	   <update id="deleteGoodsShelfRecordUtil" >
+	   
+	  DELETE from goodsshelfrecordutil    where  spid=#{spId} 
+	   </update>
+	   <select id="newselectGoodsShelfRecordUtil" resultType="map">
+	       select *  from goodsshelfrecordutil where spid=2
+	   </select>
+	   
+</mapper>

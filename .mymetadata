@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-module
+  type="WEB"
+  name="MN_CS"
+  id="myeclipse.1538433904169"
+  context-root="/MN_CS"
+  j2ee-spec="1.7"
+  archive="MN_CS.war">
+  <attributes>
+    <attribute name="webrootdir" value="src/main/webapp" />
+  </attributes>
+</project-module>
+

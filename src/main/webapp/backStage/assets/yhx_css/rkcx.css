@@ -1,0 +1,53 @@
+#top{
+	background-color:#009688;
+	border-top-left-radius:7px;
+	border-top-right-radius:7px;
+}
+#serch input{
+	height:40px;
+}
+#myModalLabel{
+	color:white;
+}
+#sel{
+	height:40px;
+	width:90px;
+}
+#myModal{
+	position:absolute;
+	left:400px;
+	width:1410px;
+	style:none;
+}
+#content{
+	position: relative;
+    max-height: 550px;
+    padding: 15px;
+    overflow-y: auto;
+}
+#zz{
+	position:absolute;
+	top:240px;
+	left:150px;
+	width:50px;
+	height:460px;
+	background-color:red;
+	z-index:10000;
+	opacity:0;
+}
+#date1{
+	width:275px;
+}
+#date2{
+	width:275px;
+}
+#alert1,#alert2,#alert3{
+	height:36px;
+	width:96.5%;
+	text-align:center;
+	position:absolute;
+	z-index:10000;
+	display:none;
+	text-align: center;
+	font-size: 16px;
+}

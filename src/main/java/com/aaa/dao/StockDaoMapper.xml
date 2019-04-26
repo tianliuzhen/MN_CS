@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aaa.dao.StockDaoMapper">
+	 <select id="getgoodsmeasure" resultType="java.util.Map"  >
+	    select * from goodsmeasure
+	     
+	 </select>
+	 <select id="getspinfotype" resultType="java.util.Map" parameterType="int">
+	    select * from spinfotype where 1=1
+	         <if test="sptId!='' and sptId!=null">
+           and sptId=#{sptId}
+             </if>    
+	     
+	 </select>
+	 <select id="getSupplier" resultType="java.util.Map" parameterType="int">
+	    select * from supplier where 1=1
+	         <if test="sptId!='' and sptId!=null">
+           and sptId=#{sptId}
+             </if>    
+	     
+	 </select>
+	 <select id="getwarehouse" resultType="java.util.Map">
+	    select * from  warehouse w JOIN officeclerk o on w.ocid =o.ocId
+	 </select>
+	 <select id="getspinfoall" resultType="java.util.Map">
+	    SELECT * from spinfo sf JOIN spinfotype st on sf.sptId=st.sptId
+                        JOIN goodsstandard gs on gs.gsId=sf.gsId
+                        JOIN goodslogo gl on gl.glId =sf.glId
+                        JOIN goodsmeasure gm on gm.gmId =sf.gmId
+                     <if test="keyWord!='' and keyWord!=null">
+           and sf.spName  like '%${keyWord}%'
+             </if>    
+                     <if test="spAllNum!='' and spAllNum!=null">
+           and sf.spAllNum   &lt; #{spAllNum}
+             </if>    
+             order by sf.spId 
+	 </select>
+	 <insert id="addstock"  parameterType="stock"  >
+	   insert into stock(ocId,stkDate,Stauts) VALUES(#{ocId},#{stkDate},0);
+	  </insert>
+	  <select id="selstockdetaillimit" resultType="int">
+	       select   stkId  from   stock   order   by  stkId    desc   limit   1
+	  </select>
+	  <select id="getoffice" parameterType="String" resultType="java.util.Map">
+	       select * from  officeclerk where ocRealName =#{ocRealName}
+	  </select>
+	 <insert id="addstockdetail"   parameterType="stockdetail"   >
+	   insert into stockdetail(stkId,spId,spName,spNumberdan,spNumber,spPrice,whId,sdDebt,sumMoney,supId,gmId,gmIdMark)
+         VALUES(#{stkId},#{spId},#{spName},#{spNumberdan},#{spNumber},#{spPrice},#{whId},#{sdDebt},#{sumMoney},#{supId},#{gmId},#{gmIdMark});
+
+	  </insert>
+	  
+	   <select id="selstocklay" resultType="java.util.Map" parameterType="stock">
+	   <!--sumMoney  sd.spPrice*sd.spNumber -->
+	    SELECT COUNT(sd.sdId) counts,SUM(sumMoney) sumMoneyall, ss.* ,oc.ocRealName from stockdetail sd 
+			  join stock ss on ss.stkId =sd.stkId
+			 
+			join officeclerk oc on oc.ocId=ss.ocId where 1=1 
+			 <if test="Stauts!=null">
+			   and  ss.Stauts=#{Stauts}
+			 </if>
+			 <if test="keyWord!='' and keyWord!=null">
+           and ss.stkDate  like '%${keyWord}%'
+             </if>
+              <if test="begindate!='' and begindate!=null and enddate!='' and enddate!=null">
+              and     ss.stkDate BETWEEN #{begindate} and #{enddate} 
+                  </if>
+			  GROUP BY ss.stkId  
+                        
+	 </select>
+	   <select id="selstockdetail" resultType="java.util.Map" parameterType="int">
+	        SELECT  sd.gmIdMark*sd.spNumberdan allnum,sd.*,s.*,sp.*,gs.*,gm.*,st.*,wh.* 
+            from stockdetail sd join warehouse wh on wh.whId=sd.whId
+                             join spinfo s on     s.spId =sd.spId
+                             join supplier sp on sd.supId=sp.supId<!--新增  -->
+                             JOIN goodsstandard gs on gs.gsId=s.gsId
+                             JOIN goodsmeasure gm on  gm.gmId =s.gmId
+                             join spinfotype st on st.sptId =s.sptId
+
+              where stkId=#{stkId}
+                        
+	 </select>
+	 <update id="yes_stock" parameterType="stock">
+	      update stock set Stauts=1,checkDate=#{checkDate}
+	          <if test="checkDateReason!=null">
+	           ,checkDateReason=#{checkDateReason}
+	       </if>
+	       WHERE stkId=#{stkId}
+	 </update>
+	 <update id="no_stock" parameterType="stock">
+	      update stock set Stauts=2,checkDate=#{checkDate}  
+	       <if test="checkDateReason!=null">
+	           ,checkDateReason=#{checkDateReason}
+	       </if>
+	       WHERE stkId=#{stkId}
+	 </update>
+	 <update id="yes_stock2" parameterType="stock">
+	      update stock set Stauts=5,checkDate2=#{checkDate2}
+	          <if test="checkDate2Reason!=null">
+	           ,checkDate2Reason=#{checkDate2Reason}
+	       </if>
+	       WHERE stkId=#{stkId}
+	 </update>
+	 <update id="no_stock2" parameterType="stock">
+	      update stock set Stauts=6,checkDate2=#{checkDate2}  
+	       <if test="checkDate2Reason!=null">
+	           ,checkDate2Reason=#{checkDate2Reason}
+	       </if>
+	       WHERE stkId=#{stkId}
+	 </update>
+	 
+	 <insert id="paymoney" parameterType="java.util.Map">
+	      insert into purchasepay(ppMoney,ppPay,ppDebt) VALUES(#{ppMoney},#{ppPay},#{ppDebt});
+	 </insert>
+	 <select id="getPur" resultType="int">
+	      select   ppId  from   purchasepay  order   by  ppId    desc   limit   1
+	 </select>
+	 <update id="updatestock" parameterType="java.util.Map">
+	      update   stock  set ppId=#{ppId},Stauts=3,purDate=#{purDate} WHERE stkId=#{stkId}
+	 </update>
+    
+     <select id="selbacklay" resultType="java.util.Map" parameterType="backsale">
+	 SELECT   bs.*,oc.ocRealName,COUNT(bu.bsuUtilId) coun,SUM(bu.bsuAllMonery) mon 
+	   from backsale bs join officeclerk oc on bs.ocId=oc.ocId
+           join backsaleutil bu on bu.bsId=bs.bsId where 1=1    
+              <if test="btauts!=null">
+			  and   bs.btauts=#{btauts}
+			 </if>             
+                <if test="keyWord!='' and keyWord!=null">
+              and bs.bsDate like '%${keyWord}%'
+             </if>             
+                <if test="begindate!='' and begindate!=null and enddate!='' and enddate!=null">
+              and     bs.bsDate BETWEEN #{begindate} and #{enddate} 
+                  </if>          
+               GROUP BY bs.bsId  
+			 
+	 </select>
+	   <select id="selbackutil" resultType="java.util.Map" parameterType="int">
+	        select  * from backsaleutil bu join spinfo s on s.spId=bu.spid
+                               join warehouse w on w.whId=bu.whid
+                               join spinfotype st on st.sptId=s.sptId 
+                        JOIN goodsstandard gs on gs.gsId=s.gsId
+                        JOIN goodslogo gl on gl.glId =s.glId
+                        JOIN goodsmeasure gm on gm.gmId =s.gmId
+         WHERE bu.bsId=#{bsId}
+                        
+	 </select>
+	  <update id="yes_back" parameterType="backsale">
+	     update backsale set btauts=1,checkDate=#{checkDate}
+	        <if test="NoReason!=null">
+	           ,NoReason=#{NoReason}
+	       </if>
+	      WHERE bsId=#{bsId}
+	 </update>
+	 <update id="no_back" parameterType="backsale">
+	      update backsale set btauts=2,checkDate=#{checkDate}
+	       <if test="NoReason!=null">
+	           ,NoReason=#{NoReason}
+	       </if>
+	       WHERE bsId=#{bsId}
+	 </update>
+	  <select id="chartone" resultType="java.util.Map"  >
+			    SELECT
+					 ifnull(sum(sr.ssRealMonery),0)  ssRealMonery,IFNULL(count(sr.soid),0) soid,mf.mname
+				FROM
+					spinfoorder sr
+				RIGHT JOIN monthf mf ON 
+				SUBSTR(REPLACE(sr.sspDate,'-',''),5,2)=mf.mname 
+				and 
+				SUBSTR(REPLACE(sr.sspDate,'-',''),1,4)=2018
+				GROUP BY mf.mname 
+				ORDER BY mf.mname  
+
+	 </select>
+	  <select id="chartpayin" parameterType="int" resultType="java.util.Map"  >
+			      SELECT
+					 ifnull(sum(pu.ppPay),0) ppPay ,mf.mname
+				FROM
+					purchasepay pu JOIN stock s on s.ppId=pu.ppId
+				RIGHT JOIN monthf mf ON 
+				SUBSTR(REPLACE(s.purDate,'-',''),5,2)=mf.mname and 
+				SUBSTR(REPLACE(s.purDate,'-',''),1,4)=#{year}
+				
+				GROUP BY mf.mname 
+				ORDER BY mf.mname 
+
+	 </select>
+	   <!-- 退货每月统计  -->
+	  <select id="chartpayout" resultType="java.util.Map"  >
+						   
+			SELECT
+				  ifnull(sum(ou.owuAllMonery),0) owuAllMonery,mf.mname
+			FROM  outwarehouseutil ou  
+			RIGHT JOIN monthf mf ON 
+			SUBSTR(REPLACE(ou.owDate,'-',''),5,2)=mf.mname and 
+			SUBSTR(REPLACE(ou.owDate,'-',''),1,4)=#{year}
+			
+			GROUP BY mf.mname 
+			ORDER BY mf.mname   
+	 </select>
+	  <select id="chartsale" resultType="java.util.Map"  >
+			SELECT
+				  ifnull(sum(ss.ssTotal),0) ssTotal,mf.mname
+			FROM  spinfospend ss    
+			RIGHT JOIN monthf mf ON 
+			SUBSTR(REPLACE(ss.ssDate,'-',''),5,2)=mf.mname and 
+			SUBSTR(REPLACE(ss.ssDate,'-',''),1,4)=#{year}
+			
+			GROUP BY mf.mname 
+			ORDER BY mf.mname   ;    
+	 </select>
+	  <select id="chartsalesub" resultType="java.util.Map"  >
+			SELECT
+				  ifnull(sum(spend.ssTotal),0)-ifnull(sum(spend.ssSaleNum*spend.spBuyPrice),0) profit,mf.mname
+			FROM  (select ss.ssDate,ss.ssTotal,s.spBuyPrice,ss.ssSaleNum from spinfospend ss join spinfo s on s.spId=ss.spId ) spend    
+			RIGHT JOIN monthf mf ON 
+			SUBSTR(REPLACE(spend.ssDate,'-',''),5,2)=mf.mname and 
+			SUBSTR(REPLACE(spend.ssDate,'-',''),1,4)=#{year}
+			
+			GROUP BY mf.mname 
+			ORDER BY mf.mname   ;    
+	 </select>
+	  <select id="chartsaledate" resultType="java.util.Map"  >
+			 SELECT
+				  ifnull(sum(ss.ssTotal),0) ssTotal,da.dname
+			FROM  spinfospend ss   
+			RIGHT JOIN mondate da ON
+			SUBSTR(REPLACE(ss.ssDate,'-',''),5,2)=#{month} and 
+			SUBSTR(REPLACE(ss.ssDate,'-',''),1,4)=#{year}   AND
+			SUBSTR(REPLACE(ss.ssDate,'-',''),7,2)=da.dname  
+      
+			GROUP BY da.dname 
+			ORDER BY da.dname ; 
+	 </select>
+	  <select id="chartsalesubdate" resultType="java.util.Map"  >
+			SELECT
+				  ifnull(sum(spend.ssTotal),0)-ifnull(sum(spend.ssSaleNum*spend.spBuyPrice),0) profit,da.dname
+			FROM  (select ss.ssDate,ss.ssTotal,s.spBuyPrice,ss.ssSaleNum from spinfospend ss join spinfo s on s.spId=ss.spId ) spend    
+			RIGHT JOIN mondate da ON 
+			SUBSTR(REPLACE(spend.ssDate,'-',''),5,2)=#{month} and 
+			SUBSTR(REPLACE(spend.ssDate,'-',''),1,4)=#{year}   AND
+			SUBSTR(REPLACE(spend.ssDate,'-',''),7,2)=da.dname 
+			
+			GROUP BY da.dname 
+			ORDER BY da.dname ; 
+	 </select>
+	 <update id="upd_spinfo" parameterType="java.util.Map">
+	      update spinfo set spId=#{spId}
+	       <if test="spSalePrice!=null">
+	           ,spSalePrice=#{spSalePrice}
+	       </if>
+	       <if test="spBuyPrice!=null">
+	           ,spBuyPrice=#{spBuyPrice}
+	       </if>
+	       <if test="sptId!=null">
+	           ,sptId=#{sptId}
+	       </if>
+	       WHERE spId=#{spId}
+	 </update>  
+	   <select id="chartsun" resultType="java.util.Map" >
+		 SELECT
+				  ifnull(sum(IF(ss.sspLackMonery  &lt; 0,-ss.sspLackMonery,0)),0) sumsun,
+				  ifnull(sum(IF(ss.sspLackMonery  &gt; 0,ss.sspLackMonery,0)),0) sumyi,
+				  ifnull(sum(IF(ss.sspLackMonery  &lt; 0,ss.sspLackMonery,0)),0)+ifnull(sum(IF(ss.sspLackMonery  &gt; 0,ss.sspLackMonery,0)),0) sunyi,
+				  mf.mname
+			FROM  stocksetpoint ss    
+			RIGHT JOIN monthf mf ON 
+			SUBSTR(REPLACE(ss.sspDate,'-',''),5,2)=mf.mname and 
+			SUBSTR(REPLACE(ss.sspDate,'-',''),1,4)=2018
+			
+			GROUP BY mf.mname 
+			ORDER BY mf.mname   ;  
+	 </select>
+</mapper>

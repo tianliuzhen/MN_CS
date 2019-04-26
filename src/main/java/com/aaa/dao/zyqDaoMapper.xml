@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aaa.dao.zyqDaoMapper">
+	<!-- 查询订单信息 -->
+	<select id="queryAllSpinfoOrders" resultType="map">
+		select * from
+		spinfoorder sr join spinfospend sd on sr.ssID=sd.ssId
+		join membership
+		mp on mp.mpId=sr.mpId order by sspDate desc
+		
+
+	</select>
+	<!-- 根据编号查询单个订单信息 -->
+	<select id="querySpinfoOrderById" resultType="map"
+		parameterType="int">
+		select * from spinfoorder where soid=#{soid}
+	</select>
+	<!-- 修改订单信息 -->
+	<update id="updateSpinfoOrder" parameterType="java.util.Map">
+		update spinfoorder
+		set
+		ssNumber=#{map.ssNumber},ocId=#{map.ocId},ssID=#{map.ssID},ssTotalPrice=#{map.ssTotalPrice},
+		mpId=#{map.mpId},ssDisMonery=#{map.ssDisMonery},ssRealMonery=#{map.ssRealMonery},ssChange=#{map.ssChange},
+		ssPayType=#{map.ssPayType}
+		where soid=#{map.soid}
+	</update>
+
+	<!-- 删除订单信息 -->
+	<delete id="delSpinfoOrder" parameterType="Integer">
+		delete from
+		spinfoorder where soid=#{soid}
+	</delete>
+	<!--根据时间查询订单数量 -->
+	<select id="queryAllSpinfoOrderDetail" parameterType="String"
+		resultType="java.util.Map">
+		select * from spinfoorder sr join spinfospend sd join membership mp on
+		sr.ssID=sd.ssId and sr.mpId=mp.mpId
+		<where>
+			<if test="beginDate!='' and endDate!=''">
+				STR_TO_DATE(sd.ssDate,'%Y-%m-%d') &gt;
+				STR_TO_DATE(#{beginDate},'%Y-%m-%d') and
+				STR_TO_DATE(sd.ssDate,'%Y-%m-%d') &lt;
+				STR_TO_DATE(#{endDate},'%Y-%m-%d')
+			</if>
+			<if test="keyWord!='' and keyWord!=null">
+				and sr.soid like '%${keyWord}%'
+			</if>
+		</where>
+	</select>
+	<!-- 查询商品信息 -->
+	<select id="queryAllSpinfo" resultType="java.util.Map"
+		parameterType="String">
+		select * from spinfo sf JOIN spinfotype st on sf.sptId=st.sptId<!-- 商品类型表 -->
+		JOIN goodsstandard gs on gs.gsId=sf.gsId<!-- 商品规格表 -->
+		JOIN goodslogo gl on gl.glId =sf.glId<!-- 商品品牌表 -->
+		JOIN goodsmeasure gm on gm.gmId =sf.gmId<!-- 计量单位表 -->
+		JOIN warehouse we on we.whId =sf.whId<!-- 仓库表 -->
+	</select>
+
+	<!--根据编号查询单个商品信息 -->
+	<select id="querySpinfoById" resultType="java.util.Map">
+		select * from spinfo sf
+		JOIN spinfotype st on sf.sptId=st.sptId
+		JOIN goodsstandard gs on
+		gs.gsId=sf.gsId
+		JOIN goodslogo gl on gl.glId =sf.glId
+		JOIN goodsmeasure
+		gm on gm.gmId =sf.gmId
+		JOIN warehouse we on we.whId =sf.whId where
+		sf.spId=#{spId}
+	</select>
+	<!--修改商品信息 -->
+	<update id="updateSpinfo" parameterType="java.util.Map">
+		update spinfo set
+		spName=#{map.spName},spBarCode=#{map.spBarCode},gsId=#{map.gsId},glId=#{map.glId},gmId=#{map.gmId},sptId=#{map.sptId},whId=#{map.whId},spBuyPrice=#{map.spBuyPrice},spSalePrice=#{map.spSalePrice},
+		spDisPrice=#{map.spDisPrice}
+		where
+		spId=#{map.spId}
+	</update>
+	<!-- 删除商品信息 -->
+	<delete id="delSpinfo" parameterType="Integer">
+		delete from spinfo
+		where
+		spId=#{spId}
+	</delete>
+	<!-- 商品图片上传 添加商品信息 -->
+	<insert id="addSpinfo" parameterType="Spinfo">
+		insert into
+		spinfo(spName,spBarCode,gsId,glId,gmId,sptId,whId,spBuyPrice,spSalePrice,spDisPrice,
+		spDisBegdate,spDisEndDdate,gdId,dpId,anId,bnId,spImage,rtPeriod,spAllNum,spStatu)
+
+
+		values(#{spName},#{spBarCode},#{gsId},#{glId},#{gmId},#{sptId},
+		#{whId},#{spBuyPrice},#{spSalePrice},#{spDisPrice},#{spDisBegdate},#{spDisEndDdate},#{gdId},#{dpId},#{anId},#{bnId},#{spImage},#{rtPeriod},0,0)
+	</insert>
+	<!-- 查询商品类型 -->
+	<select id="querySpinfoType" resultType="java.util.Map">
+		select * from spinfotype
+	</select>
+
+	<!-- 查询商品规格 -->
+	<select id="queryGoodsStandard" resultType="java.util.Map">
+		select * from
+		goodsstandard
+	</select>
+
+
+	<!-- 查询商品品牌 -->
+	<select id="queryGoodsLogo" resultType="java.util.Map">
+		select * from goodslogo
+	</select>
+
+	<!-- 查询计量单位 -->
+	<select id="queryGoodsMeasure" resultType="java.util.Map">
+		select * from
+		goodsmeasure
+	</select>
+
+	<!-- 查询仓库类型 -->
+	<select id="queryWarehouse" resultType="java.util.Map">
+		select * from warehouse
+	</select>
+
+	<!-- 查询百货部门号 -->
+	<select id="queryGoodsDept" resultType="java.util.Map">
+		select * from goodsdept
+	</select>
+
+	<!-- 查询陈列分类号 -->
+	<select id="queryDisplayparse_copy" resultType="java.util.Map">
+		select * from
+		displayparse_copy
+	</select>
+
+	<!-- 查询通道序列号 -->
+	<select id="queryAccessno" resultType="java.util.Map">
+		select * from accessno
+	</select>
+
+	<!-- 查询bay序号 -->
+	<select id="querybayno" resultType="java.util.Map">
+		select * from bayno
+	</select>
+
+
+	<!-- 查询陈列数量 -->
+	<select id="queryDisplaynum" resultType="java.util.Map">
+		select * from displaynum
+	</select>
+
+
+	<select id="querySpinfoStatus" resultType="java.util.Map">
+		select * from spinfo
+	</select>
+	<!-- 查询全部商品类型信息 -->
+	<select id="queryAllSpinfoType" resultType="java.util.Map"
+		parameterType="String">
+		select * from spinfotype
+	</select>
+
+	<!--根据编号查询单个商品信息 -->
+	<select id="queryAllSpinfoTypeById" resultType="map"
+		parameterType="int">
+		select * from spinfotype where sptId=#{sptId}
+	</select>
+	<!--添加商品类型 -->
+	<insert id="addSpinfoType" parameterType="map">
+		insert into
+		spinfotype(sptName) values(#{map.sptName})
+	</insert>
+
+
+	<!-- 删除商品类型 -->
+	<delete id="delSpinfoType" parameterType="Integer">
+		delete from spinfotype
+		where sptId=#{sptId}
+	</delete>
+
+
+
+	<!-- 修改商品类型 -->
+	<update id="updateSpinfoType" parameterType="java.util.Map">
+		update spinfotype
+		set
+		sptName=#{map.sptName} where sptId=#{map.sptId}
+	</update>
+	<!-- 财务统计 -->
+	<select id="queryAllFinance" parameterType="String" resultType="java.util.Map">
+		select * from receipt rt join purchasepay py join officeclerk ok on
+		rt.ppId=py.ppId and rt.ocId=ok.ocId
+
+		<where>
+			<if test="beginDate!='' and endDate!=''">
+				STR_TO_DATE(py.ppdate,'%Y-%m-%d') &gt;
+				STR_TO_DATE(#{beginDate},'%Y-%m-%d') and
+				STR_TO_DATE(py.ppdate,'%Y-%m-%d') &lt;
+				STR_TO_DATE(#{endDate},'%Y-%m-%d')
+			</if>
+			<if test="keyWord!='' and keyWord!=null">
+				and rt.receiptId like '%${keyWord}%'
+			</if>
+		</where>
+	</select>
+
+
+	<!-- 查询职位信息 -->
+	<select id="selectOfficeClerk" resultType="map">
+		select * from
+		officeclerk ok join dept dt join role re on ok.dpId=dt.dpId
+		and
+		ok.roleId=re.roleId
+	</select>
+
+	<!-- 通过编号查询职员对应角色信息 -->
+	<select id="queryOfficeClerkById" resultType="map"
+		parameterType="int">
+		SELECT
+		*
+		FROM
+		officeclerk ok
+		JOIN ormiddle oe ON oe.ocId = ok.ocId
+		JOIN role re ON oe.roleId = re.roleId
+		WHERE
+		ok.ocId = #{ocId}
+	</select>
+
+	<!-- 添加职位角色中间表信息 -->
+	<insert id="addOfficeClerk" parameterType="java.util.Map">
+		insert into ormiddle(ocId,roleId) values(#{ocId},#{roleId})
+
+	</insert>
+
+	<!--删除职位信息 -->
+	<delete id="delOfficeClerk" parameterType="Integer">
+		delete from
+		officeclerk where ocId=#{ocId}
+	</delete>
+
+
+
+	<!--查看职员信息 -->
+	<select id="queryOneOfficeClerk" resultType="map" parameterType="int">
+		select * from officeclerk where ocId=#{ocId}
+	</select>
+
+	<!--修改职位信息 -->
+	<update id="updateOfficeClerk" parameterType="java.util.Map">
+
+
+		update officeclerk
+		set
+		ocName=#{map.ocName},ocPassword=#{map.ocPassword},ocRealName=#{map.ocRealName},
+		ocSex=#{map.ocSex},ocAge=#{map.ocAge},ocEntryTime=#{map.ocEntryTime},ocPhone=#{map.ocPhone},ocAddress=#{map.ocAddress}
+		where ocId=#{map.ocId}
+	</update>
+
+	<!-- 查看职员性别 -->
+	<select id="queryOfficeClerkBySex" resultType="map"
+		parameterType="int">
+		select * from officeclerk where ocId=#{ocId}
+	</select>
+
+
+
+	<!--下拉框查询角色信息 -->
+	<select id="queryRoleById" resultType="map" parameterType="int">
+		select * from role where roleId=#{roleId}
+	</select>
+
+
+
+	<!--添加职员信息 -->
+	<insert id="addManyOfficeClerk" parameterType="java.util.Map">
+		insert into
+		officeclerk(ocName,ocPassword,ocRealName,ocSex,ocAge,ocEntryTime,ocPhone,ocAddress,roleId,dpId)
+		values(#{ocName},#{ocPassword},#{ocRealName},#{ocSex},#{ocAge},#{ocEntryTime},#{ocPhone},#{ocAddress},#{roleId},#{dpId})
+	</insert>
+
+
+	<!--获取职员信息总数 -->
+	<select id="queryocName" resultType="map" parameterType="String">
+		select
+		substr(max(ok.ocName),6) ocn from officeclerk ok
+	</select>
+
+
+	<!-- 查询职员状态 -->
+	<select id="queryOfficeFlag" resultType="java.util.Map">
+		select * from
+		officeclerk
+	</select>
+
+
+	<!-- 单个查询职员信息 -->
+	<select id="queryOfficeClerk" resultType="map" parameterType="int">
+		select * from officeclerk where ocId=#{ocId}
+	</select>
+
+	<!-- 修改职员状态 -->
+	<update id="updateOfficeFlag" parameterType="java.util.Map">
+		update officeclerk set ocFlag=#{map.ocFlag} where ocId=#{map.ocId}
+	</update>
+	
+	<!-- 删除角色中间表 -->
+<delete id="delOrMiddle" parameterType="String">
+  delete from ormiddle o  where  o.ocId=#{ocId} and o.roleId=#{roleId}
+	</delete>
+	
+	<!-- 查看部门信息 -->
+	<select id="selectDept" resultType="map">
+		select * from dept
+	</select>
+
+	<!-- 添加部门信息 -->
+	<insert id="addDept" parameterType="java.util.Map">
+		insert into dept(dpId,dpName)
+		values(#{map.dpId},#{map.dpName})
+	</insert>
+
+	<!-- 删除部门信息 -->
+	<delete id="delDept" parameterType="Integer">
+		delete from dept where
+		dpId=#{dpId}
+	</delete>
+
+	<!-- 查询供货商信息 -->
+	<select id="selectSupplier" resultType="map">
+		select * from supplier sr
+		join spinfotype se on sr.sptId=se.sptId
+	</select>
+
+	<!-- 添加供货商信息 -->
+	<insert id="addSupplier" parameterType="java.util.Map">
+		insert into
+		supplier(supName,supAddress,supPhone,supState,sptId)
+		values(#{map.supName},#{map.supAddress},#{map.supPhone},0,#{map.sptId})
+	</insert>
+
+	<!-- 查询单个供货商信息 -->
+	<select id="queryOneSupplier" resultType="map" parameterType="int">
+		select * from supplier where supId=#{supId}
+	</select>
+
+
+	<!-- 修改供货商信息 -->
+	<update id="updateSupplier" parameterType="java.util.Map">
+
+		update supplier set
+		supAddress=#{map.supAddress},supPhone=#{map.supPhone} where
+		supId=#{map.supId}
+	</update>
+
+	<!-- 查询供货商状态 -->
+	<select id="querysupState" resultType="java.util.Map">
+		select * from supplier
+	</select>
+
+</mapper>

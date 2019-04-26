@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aaa.dao.menuDaoMapper">
+	<select id="getTree" resultType="Treemenu" parameterType="String">
+
+		 select DISTINCT tr.*  from officeclerk of
+join ormiddle orm on orm.ocId=of.ocId
+join role r on r.roleId=orm.roleId
+join rtmiddle rtm on rtm.roleId =r.roleId
+join treemenu tr on tr.treeId=rtm.treeId
+<!-- where  of.ocName=#{ocname} -->
+<where>
+<if test="ocname==000005">of.ocFlag=1</if>
+<if test="ocname!=000005">of.ocName=#{ocname}</if>
+</where>
+	</select>
+	
+	 <select id="getTreelast" resultType="Treemenu" parameterType="String">
+
+		 	select *from treemenu
+
+	</select> 
+	
+	
+	<select id="backLogin" parameterType="Officeclerk" resultType="Officeclerk">
+
+		select ok.* from  officeclerk  ok join role r on ok.roleId=r.roleId
+		where ok.ocFlag=1 and ok.ocName=#{ocName} and ok.ocPassword=#{ocPassword};
+	</select>
+	<select id="test" resultType="map" >
+	     select *  from goodsshelfrecordutil where spid=5
+	</select>
+	
+	<select id="selectRole" resultType="map">
+	select *from role
+	</select>
+	 <insert id="addRole" parameterType="Role">
+	insert Into role values(null,#{roleName},#{roleDesc},#{roleFlag})
+	</insert>
+	<delete id="deleteRole" parameterType="Role">
+	delete from role  where roleId=#{roleId}
+	</delete>
+	<update id="updateRole" parameterType="Role">
+	update role set roleName=#{roleName},roleDesc=#{roleDesc} where roleId=#{roleId}
+	
+	</update> 
+	
+	
+	<select id="getTree2" resultType="Treemenu" parameterType="int" >
+	
+	 select DISTINCT tr.*  from officeclerk of
+join ormiddle orm on orm.ocId=of.ocId
+join role r on r.roleId=orm.roleId
+join rtmiddle rtm on rtm.roleId =r.roleId
+join treemenu tr on tr.treeId=rtm.treeId  where  r.roleId=#{roleid}
+	</select>
+	
+	<insert id="addRtmiddle" parameterType="rtMiddle">
+	insert into  rtmiddle values(#{roleId},#{treeId})
+	</insert>
+	
+	<delete id="deleteRtmiddle" parameterType="rtMiddle">
+	delete from  rtmiddle where roleId=#{roleId} and treeId=#{treeId}
+	</delete>
+	
+	<update id="updateTreeMenu" parameterType="java.util.List">
+	
+		
+	<!-- <foreach item="item" index="index" collection="list"   >
+			
+	update  treemenu   set
+	treeName=#{item.menuname},treeUrl=#{item.url},treeParent=#{item.menuid} 
+		where treeId=#{item.tpid}  ;
+			</foreach> -->
+	update  treemenu 
+	        <trim prefix="set" suffixOverrides=",">
+	            <!-- 拼接case when 这是一种写法 -->
+              <trim prefix="treeName =case" suffix="end,">
+                <foreach collection="list" item="cus">
+                    <if test="cus.menuname!=null">
+                        when treeId=#{cus.tpid} then #{cus.menuname}
+                    </if>
+                </foreach>
+                </trim>
+                
+                    <trim prefix="treeParent =case" suffix="end,">
+                <foreach collection="list" item="cus">
+                    <if test="cus.menuid!=null">
+                        when treeId=#{cus.tpid} then #{cus.menuid}
+                    </if>
+                </foreach>
+                 </trim>
+                 
+                    <trim prefix="treeUrl =case" suffix="end,">
+                <foreach collection="list" item="cus">
+                    <if test="cus.url!=null">
+                        when treeId=#{cus.tpid} then #{cus.url}
+                    </if>
+                </foreach>
+                 </trim>
+           
+
+        </trim>
+        <where>
+            <foreach collection="list" separator="or" item="cus">
+                treeId = #{cus.tpid}
+            </foreach>
+        </where>
+
+	
+	</update>
+	
+	
+	<delete id="deleteTreeMenu" parameterType="java.util.List">
+	
+	delete from treemenu where treeid 	in
+		    <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+			 #{item.tpid} 
+			
+			</foreach>
+	
+	
+	</delete>
+	
+	<insert id="addtreeMenu">
+	
+	insert into treemenu values
+		  <foreach collection="list" item="tr" separator=",">
+            (null,#{tr.menuname},#{tr.url},#{tr.menuid},"x")
+          </foreach>
+	
+	</insert>
+	
+	<select id="getMaxtreeId" resultType="int">
+	
+	select MAX(treeid) from treemenu
+	
+	
+	</select>
+	
+</mapper>

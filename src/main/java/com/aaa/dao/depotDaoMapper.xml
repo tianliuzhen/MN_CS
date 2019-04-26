@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aaa.dao.depotDaoMapper">
+<!-- 查询仓库 -->
+<select id="getdepot" resultType="java.util.Map" parameterType="String">
+	  select *from warehouse
+	         <where>
+      <if test="dept!='' and dept!=null">
+      and  whName like '%${dept}%' 
+      </if>
+   
+    </where>
+	 </select> 
+<!-- 	 查询库存未盘点商品 -->
+	 	 <select id="getdepotpan" resultType="java.util.Map"  parameterType="String">
+select * from repertory r JOIN spInfo s JOIN spinfoType t JOIN GoodsMeasure e JOIN GoodsStandard  d JOIN GoodsLogo o JOIN wareHouse w ON r.spId=s.spId AND t.sptId=s.sptId AND e.gmId=s.gmId and d.gsId=s.gsId and o.glId=s.glId and w.whId=s.whId  
+       <where>
+r.rtStatus="未盘点" and s.spStatu="未上架"
+      <if test="pan!='' and pan!=null">
+      and  s.spName like '%${pan}%' or t.sptName like '%${pan}%' or o.glName like '%${pan}%' or w.whName like '%${pan}%' 
+      </if>
+   
+    </where>
+	 </select>
+	 
+	 <select id="uppdz"  parameterType="repertory">
+	 update repertory set rtStatus="未盘点"
+	 </select>
+	 <!-- 查询单个商品信息 -->
+	  	 <select id="getdepotone"  resultType="java.util.Map">
+select * from repertory r JOIN spInfo s JOIN spinfoType t JOIN GoodsMeasure e JOIN GoodsStandard  d
+ JOIN GoodsLogo o JOIN wareHouse w ON r.spId=s.spId AND t.sptId=s.sptId AND e.gmId=s.gmId 
+ and d.gsId=s.gsId and o.glId=s.glId and w.whId=s.whId 
+ <where> 
+  r.rtStatus="未盘点" and r.rtid in
+
+    <foreach collection="list" item="list" separator="," open="(" close=")">
+ #{list.rtid} 
+</foreach>
+      <if test="getone!='' and getone!=null">
+        and  s.sspDate like '%${getone}%' or w.whName like '%${getone}%' or p.spName like '%${getone}%'
+      </if>
+    </where>
+	 </select>
+	 <select id="gettone" resultType="java.util.Map">
+	 select * from repertory r JOIN spInfo s JOIN spinfoType t JOIN GoodsMeasure e JOIN GoodsStandard  d
+ JOIN GoodsLogo o JOIN wareHouse w ON r.spId=s.spId AND t.sptId=s.sptId AND e.gmId=s.gmId 
+ and d.gsId=s.gsId and o.glId=s.glId and w.whId=s.whId where rtId=#{rtid} and rtbegDate=#{rtbegDate} and  rtEndDate=#{rtEndDate}
+	 </select>
+	 <!-- 盘点商品数量 -->
+	 <select id="updatedepot" parameterType="java.util.Map">
+	update repertory set  rtStatus="已盘点",rtNumber=#{rtNumber} where rtId=#{rtId}
+	 </select>
+	 <select id="upsifo" parameterType="Map">
+	 update spinfo set spAllNum=#{spAllNum} where spId=#{spid}
+	 </select>
+	 	 <select id="upsy"  parameterType="Map">
+	update repertory set rtNumber=#{rtNumber} where rtId=#{rtid}
+	 </select>
+	<!-- 查询盘点记录 -->
+	  <select id="selSt" resultType="java.util.Map" parameterType="String">
+select * from stocksetpoint k JOIN officeclerk o JOIN spinfo s JOIN warehouse w on s.spId=k.spId   and   w.whId=k.whId and   o.ocid=k.ocid <where> 
+
+      <if test="keyWord!='' and keyWord!=null">
+        and  s.spName like '%${keyWord}%' or k.sspDate like '%${keyWord}%' 
+      </if>
+    </where>
+    order by  k.sspDate  desc
+	 </select>
+	
+
+	 <!-- 货架盘点记录 -->
+	 	   <select id="selhj" resultType="java.util.Map" parameterType="String">
+select * from StockSetPoint s JOIN officeclerk o  JOIN wareHouse w JOIN spInfo p on  s.whId=w.whId and s.spId=p.spId and o.ocId=s.ocId
+ <where> 
+p.spStatu="已上架"
+      <if test="hj!='' and hj!=null">
+       and   s.sspDate like '%${hj}%' or w.whName like '%${hj}%' or p.spName like '%${hj}%'
+      </if>
+    </where>
+      order by  s.sspDate  desc
+	 </select>
+	 <!-- 添加盘点记录 -->
+	 <select id="addst" parameterType="java.util.List">
+	 insert into StockSetPoint(sspDate,whId,spId,sspNum,sspDamageNum,sspLackMonery,ocId) values
+	   <foreach collection="list" item="list" separator=",">
+	   (#{list.sspDate},#{list.whId},#{list.spId},#{list.sspNum},#{list.sspDamageNum},#{list.sspLackMonery},#{list.ocId})
+	   </foreach>
+	 </select>
+	 <select id="addstss" parameterType="StockSetPoint">
+	  insert into StockSetPoint(sspDate,whId,spId,sspNum,sspDamageNum,sspLackMonery,ocId) values(#{sspDate},#{whId},#{spId},#{sspNum},#{sspDamageNum},#{sspLackMonery},#{ocId})
+	 </select>
+	 <!-- 修改盘点状态 -->
+	<select id="updatede" parameterType="String">
+      update repertory  set  rtStatus=#{rt}
+	 </select>
+	<!-- 查询仓库商品 -->
+	 <select id="waresel" resultType="java.util.Map" parameterType="String">
+	 select * from repertory r JOIN spInfo s JOIN spinfoType t JOIN GoodsMeasure e JOIN GoodsStandard  d JOIN GoodsLogo o JOIN wareHouse w ON r.spId=s.spId AND t.sptId=s.sptId AND e.gmId=s.gmId and d.gsId=s.gsId and o.glId=s.glId and w.whId=s.whId 
+	 <where> 
+	  w.whId=#{whId}
+      <if test="re!='' and re!=null">
+     and  s.spName like '%${re}%' 
+      </if>
+    </where>
+	 </select>
+	 <!-- 查询商品信息用于报损报溢 -->
+     <select id="selfo" parameterType="java.util.Map"  resultType="java.util.Map">
+	 select * from repertory r JOIN spInfo s JOIN spinfoType t JOIN GoodsMeasure e JOIN GoodsStandard  d JOIN GoodsLogo o JOIN wareHouse w on  r.spId=s.spId AND t.sptId=s.sptId AND e.gmId=s.gmId and d.gsId=s.gsId and o.glId=s.glId and w.whId=s.whId where s.spId=#{spId} and r.rtbegDate=#{rtbegDate} and r.rtEndDate=#{rtEndDate}
+</select>
+<!-- 通过name查询id -->
+<select id="seloff" parameterType="String" resultType="java.util.Map">
+select  * from officeclerk where ocRealName=#{RealName}
+</select>
+<!-- c查询未上架的商品 -->
+<select id="seltui" resultType="java.util.Map" parameterType="String">
+select * from repertory r JOIN spInfo s JOIN spinfoType t JOIN GoodsMeasure e JOIN GoodsStandard  d JOIN GoodsLogo o JOIN wareHouse w ON r.spId=s.spId AND t.sptId=s.sptId AND e.gmId=s.gmId and d.gsId=s.gsId and o.glId=s.glId and w.whId=s.whId 
+<where>  s.spStatu="未上架"   and r.rtEndDate &gt;now()
+      <if test="jia!=''  and jia!=null">
+     and  s.spName like '%${jia}%' 
+      </if>
+      </where>
+</select>
+<!-- 查询退货单 -->
+<select id="selbs" resultType="java.util.Map" >
+select * from BackSale ORDER BY bsid desc LIMIT 1
+</select>
+<select id="selbsq" resultType="java.util.Map" parameterType="String">
+select * from BackSale 
+<where> btauts=1  
+      <if test="bsq!=''  and bsq!=null">
+     and  bsDate like '%${bsq}%' 
+      </if>
+      </where>
+</select>
+<select id="selboj" resultType="java.util.Map" parameterType="String">
+select * from BackSale 
+<where> btauts=2
+      <if test="bsj!=''  and bsj!=null">
+     and  bsDate like '%${bsj}%' 
+      </if>
+      </where>
+</select>
+<!-- 添加退货明细 -->
+<select id="addback" parameterType="BackSaleUtil">
+insert into backsaleutil(bsId,spid,bsuPrice,bsuNum,bsuAllMonery,sptId,BsReason,whid,bsgName,rtId)  VALUES(#{bsId},#{spid},#{bsuPrice},#{bsuNum},#{bsuAllMonery},#{sptId},#{BsReason},#{whid},#{bsgName},#{rtId})
+</select>
+<select id="addsale" parameterType="backsale">
+INSERT into backsale(ocId,btauts) values(#{ocId},#{btauts})
+</select>
+<select id="seltd" resultType="java.util.Map" parameterType="String">
+select  * from  backsale b JOIN repertory r join spinfo s  join spinfoType t JOIN backsaleutil k JOIN warehouse w ON r.spId=k.spid and r.rtId=k.rtid and   b.bsId=k.bsId and t.sptId=k.sptId and s.spId=k.spid and w.whId=k.whId
+<where>  b.btauts=4  and b.bsId=#{bsId} 
+      <if test="tui!=''  and tui!=null">
+     and  s.spName like '%${tui}%' 
+      </if>
+      </where>
+</select>
+<select id="uptd" parameterType="backsale">
+update backsale set  btauts="0",bsDate=#{bsDate} where bsId=#{bsId}
+</select>
+<select id="upmoney" parameterType="BackSaleUtil">
+update BackSaleUtil set bsuAllMonery=#{bsuAllMonery} where bsId=#{bsId}
+</select>
+<select id="selbo" resultType="java.util.Map" parameterType="String">
+select  * from  backsale b JOIN spinfo s JOIN spinfoType t JOIN backsaleutil k JOIN warehouse w ON b.bsId=k.bsId and t.sptId=k.sptId and s.spId=k.spid and w.whId=k.whId  
+
+<where>  b.btauts=2 
+      <if test="bo!=''  and bo!=null">
+     and  s.spName like '%${bo}%' 
+      </if>
+      </where>
+</select>
+<select id="selto" resultType="java.util.Map" parameterType="String">
+select  * from  backsale b JOIN spinfo s JOIN spinfoType t JOIN backsaleutil k JOIN warehouse w ON b.bsId=k.bsId and t.sptId=k.sptId and s.spId=k.spid and w.whId=k.whId  
+
+<where>  b.btauts=1   or   b.btauts=2  
+      <if test="to!=''  and to!=null">
+     and  s.spName like '%${to}%' 
+      </if>
+      </where>
+</select>
+<select id="upback" parameterType="BackSaleUtil">
+update BackSaleUtil set bsuNum=#{bsuNum},BsReason=#{BsReason} where bsuUtilId=#{bsuUtilId}
+</select>
+<select id="delback" parameterType="int">
+delete from  BackSaleUtil where bsuUtilId=#{bsuUtilId} 
+</select>
+<select id="selgq" resultType="java.util.Map" parameterType="String">
+select * from repertory r JOIN spInfo s JOIN spinfoType t JOIN GoodsMeasure e JOIN GoodsStandard  d JOIN GoodsLogo o JOIN wareHouse w ON r.spId=s.spId AND t.sptId=s.sptId AND e.gmId=s.gmId and d.gsId=s.gsId and o.glId=s.glId and w.whId=s.whId
+<where>  s.spStatu="未上架"  and r.rtEndDate &lt;= now()
+      <if test="gq!=''  and gq!=null">
+     and  s.spName like '%${gq}%' 
+      </if>
+      </where>
+</select>
+<insert id="addbackdd" parameterType="java.util.List">
+         insert into backsaleutil(bsId,spid,bsuPrice,bsuNum,bsuAllMonery,sptId,BsReason,whid)  values
+           <foreach collection="list" item="list" separator=",">
+           (#{list.bsId},#{list.spid},#{list.bsuPrice},#{list.bsuNum},#{list.bsuAllMonery},#{list.sptId},#{list.BsReason},#{list.whid})
+            </foreach>
+           
+   </insert>
+   <select id="selsale" resultType="java.util.Map" parameterType="String">
+select  * from repertory r JOIN spInfo s JOIN spinfoType t JOIN GoodsMeasure e JOIN GoodsStandard  d JOIN GoodsLogo o JOIN wareHouse w JOIN backsale b JOIN backsaleutil k ON  r.spId=s.spId AND t.sptId=s.sptId AND e.gmId=s.gmId and d.gsId=s.gsId and o.glId=s.glId and w.whId=s.whId and b.bsId=k.bsId and r.rtId=k.rtid AND r.spId=k.spid 
+<where>b.bsId=#{bsId}
+      <if test="bs!=''  and bs!=null">
+     and  s.spName like '%${bs}%' 
+      </if>
+      </where>
+   </select>
+    <select id="uptuih" parameterType="java.util.List">
+	update repertory set 
+	<foreach collection="list" item="list" separator=",">
+	rtNumber=#{list.rtNumber} where rtId=#{list.rtId}
+            </foreach>
+	 </select>
+	   <select id="uptuizt" parameterType="java.util.List">
+	update backsale set 
+	<foreach collection="list" item="list" separator=",">
+	btauts=#{list.btauts} where bsId=#{list.bsId}
+            </foreach>
+	 </select>
+	 	 <select id="addck" parameterType="java.util.List">
+	    insert into OutwareHouseUtil(spid,owuPrice,owuNum,owuAllMonery,sptId,owreason,whId,ocId,owDate)  values
+           <foreach collection="list" item="list" separator=",">
+           (#{list.spid},#{list.owuPrice},#{list.owuNum},#{list.owuAllMonery},#{list.sptId},#{list.owreason},#{list.whid},#{list.ocId},#{list.owDate})
+            </foreach>
+	 </select>
+	 <select id="delgq" parameterType="java.util.List">
+	 delete from  repertory where
+	 <foreach collection="list" item="list" separator=",">
+	 rtId=#{list.rtId} 
+	 </foreach>
+	 </select>
+	 <select id="selck" resultType="java.util.Map"  parameterType="String">
+ select * from outwarehouseutil o JOIN spinfo s JOIN spinfotype f JOIN warehouse w JOIN officeclerk i on o.spid=s.spId and f.sptId=o.sptId and w.whId=o.whId and o.ocId=i.ocId 	  
+      <where>
+      <if test="ck!='' and ck!=null">
+      and   o.owDate like '%${ck}%' or s.spName like '%${ck}%' or f.sptName like '%${ck}%'
+      </if>
+    </where>
+      order by o.owDate  desc
+	 </select>
+	 <!-- 供货商查询 -->
+	 <select id="selgh" resultType="java.util.Map"  parameterType="String">
+	 select * from supplier
+	    <where>
+      <if test="su!='' and su!=null">
+      supName like '%${su}%'
+      </if>
+    </where>
+	 </select>
+	 <!-- 判断 -->
+	 <select id="selpan" resultType="java.util.Map"  parameterType="int">
+	 SELECT count(*) dd from backsaleutil bs join backsale b on b.bsId=bs.bsId where spid=#{spid} and  b.btauts=4 ORDER BY b.bsid desc LIMIT 1
+	 </select>
+	 
+	 <select id="ztd" resultType="java.util.Map">
+	 select count(*) t from backsale where btauts=0
+	 </select>
+	<!--补货待审核  -->
+	 
+	 <select id="zbu" resultType="java.util.Map">
+	 select IFNULL(count(*),0)  b from  bugoodscheck  bk where  bk.bgcStatus='补货待审核'
+	 </select>
+		<!-- 2.采购待审核 --> 
+	  <select id="zcd" resultType="java.util.Map">
+	  SELECT COUNT(ss.stkId) s FROM	stock ss WHERE ss.Stauts = 0</select>
+		<!--  上下架待审核 --> 
+	   <select id="zsy" resultType="java.util.Map">
+	   select count(*) u from upanddowncheck uk where  uk.ucStatus='上架待审核' or uk.ucStatus='下架待审核'</select>
+	 	<!--  5.当天总收益 --> 
+	    <select id="dzy" resultType="java.util.Map">
+	    select SUM(sr.ssTotalPrice) m from spinfoorder sr where LEFT(sr.sspDate,10)=curdate() 
+	    
+	    </select>
+	   	<!-- 6.当天总订单 --> 
+	     <select id="dzd" resultType="java.util.Map">
+	     select COUNT(*) d from  spinfoorder  sr where   LEFT(sr.sspDate,10)=curdate() </select>
+	    	<!-- 7.当天采采购订单  --> 
+	      <select id="dcg" resultType="java.util.Map"> 
+	      SELECT COUNT(*) c,ss.stkDate   from   stock ss  where   ss.Stauts=0   and  LEFT(sr.sspDate,8)=curdate()
+	      </select>
+	    	<!--8.当天入库订单  -->  
+	       <select id="drk" resultType="java.util.Map">
+	       select count(*) i from inwarehouse ie where    LEFT(ie.inDate,10)=curdate() </select>
+	       <select id="gdn" resultType="java.util.Map">
+	       select gdName from goodsdept
+	       </select>
+	       <select id="office" resultType="java.util.Map">
+	       select * from officeclerk
+	       </select>
+</mapper>

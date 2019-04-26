@@ -1,0 +1,46 @@
+﻿#top{
+	background-color:#009688;
+	border-top-left-radius:7px;
+	border-top-right-radius:7px;
+}
+#dateBox{
+    position:absolute;
+	left:600px;
+	top:75px;
+	height:50px;
+	width:500px;
+}
+#dateBox input{
+	height:40px;
+}
+
+#myModalLabel{
+	color:white;
+}
+#sel{
+	height:40px;
+	width:90px;
+}
+#myModal{
+	position:absolute;
+	left:400px;
+	width:1410px;
+	style:none;
+}
+#content{
+	position: relative;
+    max-height: 550px;
+    padding: 15px;
+    overflow-y: auto;
+}
+#zz{
+	position:absolute;
+	top:240px;
+	left:150px;
+	width:50px;
+	height:460px;
+	background-color:red;
+	z-index:10000;
+	opacity:0;
+}
+
